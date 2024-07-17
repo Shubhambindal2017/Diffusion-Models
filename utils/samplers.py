@@ -16,6 +16,9 @@ class DDPMVanilla:
         self.device = device
         self.timesteps = timesteps
 
+    def perturb_noise(self, x, t, noise):
+        return self.ab_t.sqrt()[t, None, None, None] * x + (1 - self.ab_t[t, None, None, None]) * noise
+
     def denoise_add_noise(self, x, t, pred_noise, z=None):
         if z is None:
             z = torch.randn_like(x)
