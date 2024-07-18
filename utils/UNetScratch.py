@@ -108,6 +108,7 @@ class UNet(nn.Module):
                                         each element in this will be a tuple for that downsampleElement
                                         each tuple denotes (in_ch, out_ch)
         '''
+        self.c_size = c_size
         self.in_channels = in_channels
         super().__init__()
         self.inital_conv = ResNetBlock(in_channels, f_size, skip_connection=True)
@@ -192,6 +193,7 @@ class UNet(nn.Module):
             )
         return self.output(torch.cat((upSampleOutput[-1], x), 1))
 
+'''
 in_channels = 3 
 c_size = 5
 f_size = 64
@@ -207,6 +209,8 @@ summary(uNetObj, [(3, 16, 16), (1, 1, 1), (5, 1, 1)])
 from torchviz import make_dot
 
 make_dot(output, params=dict(list(uNetObj.named_parameters()))).render("rnn_torchviz", format="png")
+'''
+
 
 '''
 S - Size

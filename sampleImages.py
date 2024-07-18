@@ -13,7 +13,7 @@ device = 'cpu'
 expName = 'starter_t_500'
 expSubName = None # should be a string or None
 model_architecture = 'UNetScratch'
-model_path = ''
+model_path = '/teamspace/studios/this_studio/diffusion-models/output/training/train_sprite_epochs_40/models/model_32.pth'
 samplerAlgo = 'DDPMVanilla'
 timesteps = 500
 h = 16 # height
@@ -21,7 +21,7 @@ n_sample = 32
 saveIntermediate = True
 
 if saveIntermediate:
-    save_dir = 'output'
+    save_dir = 'output/generateSprites'
     fileName = expName
     subFileName = expSubName
     os.makedirs(save_dir, exist_ok=True)
@@ -54,7 +54,7 @@ if model_architecture=='UNetScratch':
     print()
     allowChangeInParam()
     model = UNet(in_channels, c_size, f_size, h, downsampleList, inChannels_outChannelsList).to(device)
-    #model.load_state_dict(model_path, map_location=device)
+    model.load_state_dict(torch.load(model_path, map_location=device) )
     model.eval()
 
 if samplerAlgo=='DDPMVanilla':

@@ -85,6 +85,7 @@ def plot_sample(x_gen_store, n_sample, nrows, save_dir, fn,  w, save=False):
     plt.close()
     if save:
         savePath = f"{fn}_w{w}.gif" if w is not None else f"{fn}.gif"
+        savePath = os.path.join(save_dir, savePath)
         ani.save(savePath, dpi=100, writer=PillowWriter(fps=5))
         print('saved gif at ' + savePath)
     return ani
