@@ -18,18 +18,18 @@ import logging
 from torch.utils.tensorboard import SummaryWriter
 
 device = 'cuda'
-expName = 'train_pokemon_epochs_32_exp_2'
-datasetName = 'pokemon' # sprites
+expName = 'sprites_train_exp_1'
+datasetName = 'sprites' # sprites
 model_architecture = 'UNetScratch'
 samplerAlgo = 'DDPMVanilla'
 timesteps = 500
 ## SEE ARCHITECTURE PARAMS TOO - especially h and batch_size ; other Unet params too as per dataset
 learning_rate = 1e-3
-epochs = 64
+epochs = 32
 saveIntermediate = True
 
 if saveIntermediate:
-    epoch_save_rate = 1
+    epoch_save_rate = 4
     save_models_at_epoch_save_rate = False #True
     n_sample = 32
     save_dir = f'output/training/{expName}'
@@ -58,6 +58,16 @@ if model_architecture=='UNetScratch':
         inChannels_outChannelsList  =  [(f_size, f_size), (f_size, 2*f_size), (2*f_size, 2*f_size)]
 
     if datasetName == 'pokemon':
+        h = 16 # height
+        batch_size = 128               # batch_size`
+        in_channels = 3 
+        c_size = 5
+        f_size = 64
+        h = h
+        downsampleList              =  [ 2, 2, 4]
+        inChannels_outChannelsList  =  [(f_size, f_size), (f_size, 2*f_size), (2*f_size, 2*f_size)]
+
+        '''
         h = 32
         batch_size = 32             # batch_size`- wth L4 instance
         in_channels = 3 
@@ -69,6 +79,7 @@ if model_architecture=='UNetScratch':
                                         (f_size, 2*f_size), # 32, 64 -> 8
                                         (2*f_size, 4*f_size), # 64, 128 -> 4
                                         (4*f_size, 4*f_size)] # 128, 128 -> 1
+        '''
         '''
         downsampleList              =  [ 2, 2, 2, 2, 2, 4]
         inChannels_outChannelsList  =  [(f_size, f_size), # 32, 32 -> 64
