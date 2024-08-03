@@ -3,3 +3,7 @@ __pycache__/
 __pycache__
 *.png
 *.npy
+*.png
+*.jpg
+*.jpeg
+*npy

@@ -1,6 +1,7 @@
+import os
 import sys
 import torch
-import Image
+from PIL import Image
 from torch import nn
 import numpy as np
 
@@ -40,7 +41,7 @@ class SpritesDataset(torch.utils.data.Dataset):
             label = torch.tensor(label).to(torch.int64)
         return (image, label)
 
-class PokemonDataset(torch.nn.utils.Dataset):
+class PokemonDataset(torch.utils.data.Dataset):
     def __init__(self, datasetParams):
         imgDir, labels, transform, null_context =  datasetParams['imgDir'], datasetParams['labels'], \
                                                                     datasetParams['transform'], datasetParams['null_context']
@@ -59,9 +60,9 @@ class PokemonDataset(torch.nn.utils.Dataset):
     def __len__(self):
         return len(self.images)
 
-    def __get_item__(self, idx):
+    def __getitem__(self, idx):
         image = os.path.join(self.imgDir, self.images[idx])
-        image = Image.open(image)
+        image = Image.open(image).convert('RGB')
         if self.transform:
             image = self.transform(image)
         if self.null_context:
