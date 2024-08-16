@@ -5,11 +5,18 @@ from PIL import Image
 from torch import nn
 import numpy as np
 
+def list_files_with_paths(directory):
+    file_paths = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            file_paths.append(os.path.join(root, file))
+    return file_paths
+
 def prepareDataset(datasetName, datasetParams):
     if datasetName == 'sprites':
         dataset = SpritesDataset(datasetParams)
-    elif datasetName == 'pokemon':
-        dataset = PokemonDataset(datasetParams)
+    elif datasetName == 'pokemon' or datasetName=='pokemon_large' or datasetName=='anime':
+        dataset = PokemonDataset(datasetParams, datasetName)
     else:
        print()
        print(f'Dataset : {datasetName}, not yet supported')
@@ -42,12 +49,18 @@ class SpritesDataset(torch.utils.data.Dataset):
         return (image, label)
 
 class PokemonDataset(torch.utils.data.Dataset):
-    def __init__(self, datasetParams):
+    def __init__(self, datasetParams, datasetName):
         imgDir, labels, transform, null_context =  datasetParams['imgDir'], datasetParams['labels'], \
                                                                     datasetParams['transform'], datasetParams['null_context']
         
+
         self.imgDir = imgDir
-        self.images = [img for img in os.listdir(imgDir) if img[0]!='.']
+        if datasetName=='pokemon':
+            self.images = [os.path.join(self.imgDir, img) for img in os.listdir(imgDir) if img[0]!='.']
+        elif datasetName=='pokemon_large' or datasetName=='anime':
+            self.images = list_files_with_paths(self.imgDir)
+            self.images = [img for img in self.images if '.svg' not in img]
+
         print(f'images num : {len(self.images)}')
 
         if not null_context:
@@ -61,7 +74,7 @@ class PokemonDataset(torch.utils.data.Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
-        image = os.path.join(self.imgDir, self.images[idx])
+        image = self.images[idx]
         image = Image.open(image).convert('RGB')
         if self.transform:
             image = self.transform(image)

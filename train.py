@@ -18,14 +18,14 @@ import logging
 from torch.utils.tensorboard import SummaryWriter
 
 device = 'cuda'
-expName = 'sprites_train_exp_1'
-datasetName = 'sprites' # sprites
+expName = 'anime_train_exp_3'
+datasetName = 'anime' # sprites # pokemon_large
 model_architecture = 'UNetScratch'
 samplerAlgo = 'DDPMVanilla'
 timesteps = 500
 ## SEE ARCHITECTURE PARAMS TOO - especially h and batch_size ; other Unet params too as per dataset
 learning_rate = 1e-3
-epochs = 32
+epochs = 64
 saveIntermediate = True
 
 if saveIntermediate:
@@ -57,15 +57,18 @@ if model_architecture=='UNetScratch':
         downsampleList              =  [ 2, 2, 4]
         inChannels_outChannelsList  =  [(f_size, f_size), (f_size, 2*f_size), (2*f_size, 2*f_size)]
 
-    if datasetName == 'pokemon':
-        h = 16 # height
-        batch_size = 128               # batch_size`
+    if datasetName == 'pokemon' or datasetName == 'pokemon_large':
+        h = 64 #16 # height
+        batch_size = 32               # batch_size`
         in_channels = 3 
         c_size = 5
-        f_size = 64
+        f_size = 32
         h = h
-        downsampleList              =  [ 2, 2, 4]
-        inChannels_outChannelsList  =  [(f_size, f_size), (f_size, 2*f_size), (2*f_size, 2*f_size)]
+        downsampleList              =  [ 2, 2, 4, 4]
+        inChannels_outChannelsList  =  [(f_size, f_size), # 32, 32 -> 32
+                                        (f_size, 2*f_size), # 32, 64 -> 16
+                                        (2*f_size, 4*f_size), # 64, 128 -> 4
+                                        (4*f_size, 4*f_size),] # 128, 128 -> 1
 
         '''
         h = 32
@@ -89,7 +92,46 @@ if model_architecture=='UNetScratch':
                                         (8*f_size, 8*f_size), # 256, 256 -> 4
                                         (8*f_size, 8*f_size),] # 256, 256 -> 1
         '''
+    if datasetName == 'anime':
+        h = 32 #16 # height
+        batch_size = 128               # batch_size`
+        in_channels = 3 
+        c_size = 5
+        f_size = 64
+        h = h
+        downsampleList              =  [ 2, 2, 2, 4]
+        inChannels_outChannelsList  =  [(f_size, 2*f_size), # 64, 128 -> 16
+                                        (2*f_size, 4*f_size), # 128, 256 -> 8
+                                        (4*f_size, 8*f_size), # 256, 512 -> 4
+                                        (8*f_size, 8*f_size),] # 512, 512 -> 1
+        '''
+        h = 32 #16 # height
+        batch_size = 128               # batch_size`
+        in_channels = 3 
+        c_size = 5
+        f_size = 64
+        h = h
+        downsampleList              =  [ 2, 2, 2, 4]
+        inChannels_outChannelsList  =  [(f_size, f_size), # 64, 64 -> 16
+                                        (f_size, 2*f_size), # 64, 128 -> 8
+                                        (2*f_size, 4*f_size), # 128, 256 -> 4
+                                        (4*f_size, 4*f_size),] # 256, 256 -> 1
+        '''
+        '''
+        h = 32 #16 # height
+        batch_size = 128               # batch_size`
+        in_channels = 3 
+        c_size = 5
+        f_size = 32 #64
+        h = h
+        downsampleList              =  [ 2, 2, 2, 4]
+        inChannels_outChannelsList  =  [(f_size, f_size), # 32, 32 -> 16
+                                        (f_size, 2*f_size), # 32, 64 -> 8
+                                        (2*f_size, 4*f_size), # 64, 128 -> 4
+                                        (4*f_size, 4*f_size),] # 128, 128 -> 1
+        '''
     
+
     print(f'Parameters to be used : ')
     print(f'\t in_channels : {in_channels}')
     print(f'\t c_size : {c_size}')
@@ -131,6 +173,46 @@ elif datasetName == 'pokemon':
     ])
     datasetParams = {}
     datasetParams['imgDir'] = '/teamspace/studios/this_studio/diffusion-models/data/pokemon/pokemon'
+    datasetParams['labels'] = None
+    datasetParams['transform'] = transform
+    datasetParams['null_context'] = True
+
+elif datasetName == 'pokemon_large':
+    '''
+    transform = transforms.Compose([
+        transforms.Resize(size=(h, h)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=(-10, 10)),
+        #transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        #transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.9, 1.1), shear=5),
+        transforms.ToTensor(), # from [0,255] to range [0.0,1.0]
+        transforms.Normalize((0.5,), (0.5,))  # range [-1,1]
+    ])
+    '''
+    transform = transforms.Compose([
+        transforms.Resize(size=(64, 64)),  # Increased image size
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=(-15, 15)),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
+        transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.95, 1.05), shear=2),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
+    datasetParams = {}
+    datasetParams['imgDir'] = '/teamspace/studios/this_studio/diffusion-models/data/pokemon_large/PokemonData'
+    datasetParams['labels'] = None
+    datasetParams['transform'] = transform
+    datasetParams['null_context'] = True
+
+elif datasetName == 'anime':
+    transform = transforms.Compose([
+        transforms.Resize(size=(32, 32)),  # Increased image size
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
+    datasetParams = {}
+    datasetParams['imgDir'] = '/teamspace/studios/this_studio/diffusion-models/data/animefacedataset'
     datasetParams['labels'] = None
     datasetParams['transform'] = transform
     datasetParams['null_context'] = True
@@ -177,7 +259,7 @@ def train():
         writer.add_scalar('Loss/train', round(np.mean(loss_list), 3), epoch)
 
 
-        if epoch%epoch_save_rate==0 or epoch == epochs:
+        if epoch==1 or epoch%epoch_save_rate==0 or epoch == epochs:
             os.makedirs(os.path.join(save_dir, 'models'), exist_ok=True)
             os.makedirs(os.path.join(save_dir, 'output'), exist_ok=True)
 
